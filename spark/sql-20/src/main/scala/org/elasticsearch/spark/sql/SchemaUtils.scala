@@ -52,6 +52,7 @@ import org.elasticsearch.hadoop.serialization.FieldType.BOOLEAN
 import org.elasticsearch.hadoop.serialization.FieldType.BYTE
 import org.elasticsearch.hadoop.serialization.FieldType.DATE
 import org.elasticsearch.hadoop.serialization.FieldType.DATE_NANOS
+import org.elasticsearch.hadoop.serialization.FieldType.DATE_RANGE
 import org.elasticsearch.hadoop.serialization.FieldType.DOUBLE
 import org.elasticsearch.hadoop.serialization.FieldType.HALF_FLOAT
 import org.elasticsearch.hadoop.serialization.FieldType.SCALED_FLOAT
@@ -59,6 +60,7 @@ import org.elasticsearch.hadoop.serialization.FieldType.FLOAT
 import org.elasticsearch.hadoop.serialization.FieldType.GEO_POINT
 import org.elasticsearch.hadoop.serialization.FieldType.GEO_SHAPE
 import org.elasticsearch.hadoop.serialization.FieldType.INTEGER
+import org.elasticsearch.hadoop.serialization.FieldType.INTEGER_RANGE
 import org.elasticsearch.hadoop.serialization.FieldType.JOIN
 import org.elasticsearch.hadoop.serialization.FieldType.KEYWORD
 import org.elasticsearch.hadoop.serialization.FieldType.LONG
@@ -170,6 +172,17 @@ private[sql] object SchemaUtils {
       case OBJECT       => convertToStruct(field, geoInfo, absoluteName, arrayIncludes, arrayExcludes, cfg)
       case NESTED       => DataTypes.createArrayType(convertToStruct(field, geoInfo, absoluteName, arrayIncludes, arrayExcludes, cfg))
       case JOIN         => convertToStruct(field, geoInfo, absoluteName, arrayIncludes, arrayExcludes, cfg)
+      case INTEGER_RANGE => {
+        val gte = DataTypes.createStructField("gte", IntegerType, true)
+        val lte = DataTypes.createStructField("lte", IntegerType, true)
+        DataTypes.createStructType(Array(gte,lte))
+      }
+
+      case DATE_RANGE => {
+        val gte = DataTypes.createStructField("gte", if (cfg.getMappingDateRich) TimestampType else StringType, true)
+        val lte = DataTypes.createStructField("lte", if (cfg.getMappingDateRich) TimestampType else StringType, true)
+        DataTypes.createStructType(Array(gte,lte))
+      }
       
       // GEO
       case GEO_POINT => {
